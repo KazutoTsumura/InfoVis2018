@@ -43,9 +43,9 @@ function main()
     {
         var S = i / 255.0; // [0,1]
         //S = S * 0.7 + 0.1;
-        var R = Math.max( Math.cos( (S - 1.0) * Math.PI ), 0.0 );
-        var G = Math.max( Math.cos( (S - 0.5) * Math.PI ), 0.0 );
-        var B = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var R = 1.0;
+        var G = 1 - S;
+        var B = 1 - S;
         var color = new THREE.Color( R, G, B );
         cmap.push( [ S, '0x' + color.getHexString() ] );
     }
