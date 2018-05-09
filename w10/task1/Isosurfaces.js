@@ -75,7 +75,8 @@ function Isosurfaces( volume, isovalue )
 
     geometry.computeVertexNormals();
 
-    material.color = new THREE.Color( "white" );
+    //material.color = new THREE.Color( "white" );
+    material.color = new THREE.Color().setHex( cmap[ isovalue ][1] );
 
     return new THREE.Mesh( geometry, material );
 
