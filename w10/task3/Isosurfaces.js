@@ -7,6 +7,19 @@ function Isosurfaces( volume, isovalue )
     var smax = volume.max_value;
     isovalue = KVS.Clamp( isovalue, smin, smax );
 
+    // Create color map
+    var cmap = [];
+    for ( var i = 0; i < 256; i++ )
+    {
+        var S = i / 255.0; // [0,1]
+        //S = S * 0.7 + 0.1;
+        var R = Math.max( Math.cos( (S - 1.0) * Math.PI ), 0.0 );
+        var G = Math.max( Math.cos( (S - 0.5) * Math.PI ), 0.0 );
+        var B = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var color = new THREE.Color( R, G, B );
+        cmap.push( [ S, '0x' + color.getHexString() ] );
+    }
+
     var lut = new KVS.MarchingCubesTable();
     var cell_index = 0;
     var counter = 0;
@@ -62,7 +75,20 @@ function Isosurfaces( volume, isovalue )
 
     geometry.computeVertexNormals();
 
-    material.color = new THREE.Color( "white" );
+    //material.color = new THREE.Color( "white" );
+    materialColor = new THREE.Color().setHex( cmap[ isovalue ][1] );
+
+    var material = new THREE.ShaderMaterial({
+        vertexColors: THREE.VertexColors,
+        vertexShader: document.getElementById('phong_Phong.vert').text,
+        fragmentShader: document.getElementById('phong_Phong.frag').text,
+        uniforms: {
+            //light_position: { type: 'v3', value: light.position },
+            m_color: { type : 'v3', value: materialColor}
+        }
+    });
+
+    material.color = new THREE.Color().setHex( cmap[ isovalue ][1] );
 
     return new THREE.Mesh( geometry, material );
 
@@ -110,6 +136,17 @@ function Isosurfaces( volume, isovalue )
 
     function interpolated_vertex( v0, v1, s )
     {
-        return new THREE.Vector3().addVectors( v0, v1 ).divideScalar( 2 );
+        var lines = volume.resolution.x;
+        var slices = volume.resolution.x * volume.resolution.y;
+        var i0 = v0.x + v0.y * lines + v0.z * slices;
+        var i1 = v1.x + v1.y * lines + v1.z * slices;
+
+        var s0 = volume.values[i0][0];
+        var s1 = volume.values[i1][0];
+        var t = (s- s0) / (s1 - s0);
+
+        v0 = v0.multiplyScalar(1-t);
+        v1 = v1.multiplyScalar(t)
+        return new THREE.Vector3().addVectors(v0, v1);
     }
 }
