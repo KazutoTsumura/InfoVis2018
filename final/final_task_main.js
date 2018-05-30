@@ -24,8 +24,6 @@ function main()
     var smin = volume.min_value;
     var smax = volume.max_value;
     var isovalue = KVS.Mix( smin, smax, 0.5 );
-    var isosurface = new KVS.Isosurface();
-    isosurface.setIsovalue( isovalue );
 
     var mat_color = KVS.Mix( smin, smax, 0.5 );     //ザリガニの色
 
@@ -50,8 +48,8 @@ function main()
     //colorに関するスライダー
     document.getElementById('color')
     .addEventListener('mousemove', function() {
-      var value = +document.getElementById('color').value;
-      var mat_color = KVS.Mix( smin, smax, value );
+      var c_value = +document.getElementById('color').value;
+      var mat_color = KVS.Mix( smin, smax, c_value );
       document.getElementById('label_col').innerHTML = "Color: " + Math.round( mat_color ) + "\n";
     });
     ///////////////////////////
@@ -62,15 +60,14 @@ function main()
       ///isovalue///
       var value = +document.getElementById('isovalue').value;
       var isovalue = KVS.Mix( smin, smax, value );
-      var isosurface = new KVS.Isosurface();
-      isosurface.setIsovalue( isovalue );
       //////////////
 
       ///color///
-      //value = +document.getElementById('color').value;
-      //var mat_color = KVS.Mix( smin, smax, value );
+      c_value = +document.getElementById('color').value;
+      var mat_color = KVS.Mix( smin, smax, c_value );
       ///////////
-      surfaces = Isosurfaces( volume, isovalue, mat_color );
+
+      surfaces = Isosurfaces( volume, isovalue, mat_color);
       screen.scene.add( surfaces );
     });
 
