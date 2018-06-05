@@ -1,4 +1,4 @@
-function Isosurfaces( volume, isovalue, mat_color )
+function Isosurfaces( volume, isovalue, mat_color, cmap)
 {
     var geometry = new THREE.Geometry();
     var material = new THREE.MeshLambertMaterial();
@@ -9,7 +9,7 @@ function Isosurfaces( volume, isovalue, mat_color )
     mat_color = Math.round(KVS.Clamp( mat_color, smin, smax ));     //ザリガニの色の値
 
     // Create color map
-    var cmap = [];
+    /*var cmap = [];
     for ( var i = 0; i < 256; i++ )
     {
         var S = i / 255.0; // [0,1]
@@ -18,7 +18,7 @@ function Isosurfaces( volume, isovalue, mat_color )
         var B = Math.max( Math.cos( S * Math.PI ), 0.0 );
         var color = new THREE.Color( R, G, B );
         cmap.push( [ S, '0x' + color.getHexString() ] );
-    }
+    }*/
 
     var lut = new KVS.MarchingCubesTable();
     var cell_index = 0;
@@ -77,6 +77,16 @@ function Isosurfaces( volume, isovalue, mat_color )
 
     //material.color = new THREE.Color( "white" );
     material.color = new THREE.Color().setHex( cmap[ mat_color ][1] );
+
+    var material = new THREE.ShaderMaterial({
+        vertexColors: THREE.VertexColors,
+        vertexShader: document.getElementById('gouraud_vertex').text,
+        fragmentShader: document.getElementById('gouraud_frag').text,
+        uniforms: {
+            //light_position: { type: 'v3', value: light.position },
+            m_color: { type : 'v3', value: material.Color}
+        }
+    });
 
     return new THREE.Mesh( geometry, material );
 
