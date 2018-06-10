@@ -17,17 +17,8 @@ function main()
       cmap.push( [ S, '0x' + color.getHexString() ] );
   }
   //////////////////////
-
-  /*
-  // Draw color map
-  var lut = new THREE.Lut( 'rainbow', cmap.length );
-  lut.addColorMap( 'mycolormap', cmap );
-  lut.changeColorMap( 'mycolormap' );
-  scene.add( lut.setLegendOn( {
-      'layout':'horizontal',
-      'position': { 'x': 0.6, 'y': -1.1, 'z': 2 },
-      'dimensions': { 'width': 0.15, 'height': 1.2 }
-  } ) );*/
+  var sw_shader = 0;    //0:gouraud     1:phong
+  var sw_ref = 0;       //0:Lambertian  1:Phong
 
   screen.init(volume, {
     width: window.innerWidth * 0.8,
@@ -51,13 +42,15 @@ function main()
 
     var mat_color = KVS.Mix( smin, smax, 0.5 );     //ザリガニの色
 
+
+
     document.getElementById('label_iso').innerHTML = "Isovalue: " + Math.round( isovalue ) + "\n";
     document.getElementById('label_col').innerHTML = "Color: " + Math.round( mat_color )+ "\n";
 
     var line = KVS.ToTHREELine( box.exec( volume ) );
     screen.scene.add( line );
 
-    var surfaces = Isosurfaces( volume, isovalue, mat_color, cmap );
+    var surfaces = Isosurfaces( volume, isovalue, mat_color, cmap, sw_shader, sw_ref );
     screen.scene.add( surfaces );
 
     /** isovalueに関するスライダーの値 **/
@@ -77,7 +70,7 @@ function main()
       document.getElementById('label_col').innerHTML = "Color: " + Math.round( mat_color ) + "\n";
     });
     /********************************/
-
+    var element_Lamb = document.getElementById("Lambertian");
 
     /***** Applyの適用 *****/
     document.getElementById('change-status-button')
@@ -93,25 +86,48 @@ function main()
       var mat_color = KVS.Mix( smin, smax, c_value );
       ///////////
 
-      /**varying vec3 point_color;
-  	  varying vec4 point_position;
-  	  varying vec3 normal_vector;
-  	  uniform vec3 light_position;
+      /*** shaderとrefrectionの設定 ***/
+      //shaderの選択
+      var radios = document.getElementsByName("shader");
 
-      var element_Lamb = document.getElementById("Lambertian");
-      var element_Phon = document.getElementById("Phong");
+      var result;
+      for(var i=0; i<radios.length; i++){
+        if (radios[i].checked) {
+          //選択されたラジオボタンのvalue値を取得する
+          result = radios[i].value;
+          break;
+        }
+      }
 
-      point_position = modelViewMatrix * vec4( position, 1.0 );
-        normal_vector = normalMatrix * normal;
-	    vec3 C = color;
-	    vec3 L = normalize( light_position - point_position.xyz ); vec3 N = normalize( normal_vector );
-      if(element_Lamb.checked)  point_color = LambertianReflection( C, L, N );
-      if(element_Phon.checked)  point_color = PhongReflection( C, L, N );
-	    gl_Position = projectionMatrix * point_position;
+        if(result=="gouraud"){
+          sw_shader = 0;
+        }else if (result == "phong") {
+          sw_shader = 1;
+        }
 
-      gl_FragColor = vec4( point_color, 1.0 );*/
 
-      surfaces = Isosurfaces( volume, isovalue, mat_color, cmap);
+
+      //reflectionの選択
+      radios = document.getElementsByName("reflection");
+
+      //var result;
+      for(var i=0; i<radios.length; i++){
+        if (radios[i].checked) {
+          //選択されたラジオボタンのvalue値を取得する
+          result = radios[i].value;
+          break;
+        }
+      }
+        if(result=="Lambertian"){
+          sw_ref = 0;
+        }else if (result == "Phong") {
+          sw_ref = 1;
+        }
+      
+      /*******************************/
+
+
+      surfaces = Isosurfaces( volume, isovalue, mat_color, cmap, sw_shader, sw_ref);
       screen.scene.add( surfaces );
     });
     /**********************/
@@ -130,33 +146,3 @@ function main()
     screen.draw();
   }
 }
-
-
-/*vec3 LambertianReflection( vec3 C, vec3 L, vec3 N )
- {
-    float ka = 0.4;
-    float kd = 0.6;
-
-    float dd = max(dot(N, L), 0.0);
-    float Ia = ka;
-    float Id = kd * dd;
-    return C * (Ia + Id);
- }
-
- vec3 PhongReflection( vec3 C, vec3 L, vec3 N )
-  {
-     float ka = 0.3;
-     float kd = 0.5;
-     float ks = 0.8;
-     float n = 50.0;
-     vec3 R = reflect( -L, N );
-     vec3 V = normalize( camera_position - point_position.xyz );
-
-     float dd = max( dot( N, L ), 0.0 );
-     float ds = pow( max( dot( R, V ), 0.0 ), n );
-     if ( dd <= 0.0 ) { ds = 0.0; }
-     float Ia = ka;
-     float Id = kd * dd;
-     float Is = ks * ds;
-     return C * ( Ia + Id + Is );
-  }*/

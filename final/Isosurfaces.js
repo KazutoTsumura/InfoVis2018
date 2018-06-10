@@ -1,4 +1,4 @@
-function Isosurfaces( volume, isovalue, mat_color, cmap)
+function Isosurfaces( volume, isovalue, mat_color, cmap, sw_shader, sw_ref)
 {
     var geometry = new THREE.Geometry();
     var material = new THREE.MeshLambertMaterial();
@@ -75,18 +75,49 @@ function Isosurfaces( volume, isovalue, mat_color, cmap)
 
     geometry.computeVertexNormals();
 
-    //material.color = new THREE.Color( "white" );
-    material.color = new THREE.Color().setHex( cmap[ mat_color ][1] );
+    material.Color = new THREE.Color().setHex( cmap[ mat_color ][1] );
 
-    var material = new THREE.ShaderMaterial({
-        vertexColors: THREE.VertexColors,
-        vertexShader: document.getElementById('gouraud_vertex').text,
-        fragmentShader: document.getElementById('gouraud_frag').text,
-        uniforms: {
-            //light_position: { type: 'v3', value: light.position },
-            m_color: { type : 'v3', value: material.Color}
-        }
-    });
+    if(sw_shader == 0){               //gouraud shaderを選択
+      if(sw_ref == 0){                //Lambertian reflectionを選択
+        var material = new THREE.ShaderMaterial({
+            vertexColors: THREE.VertexColors,
+            vertexShader: document.getElementById('gouraud_Lam.vert').text,
+            fragmentShader: document.getElementById('gouraud_Lam.frag').text,
+            uniforms: {
+                m_color: { type : 'v3', value: material.Color}
+            }
+        });
+      }else if (sw_ref ==1) {         //Phong Reflectionを選択
+        var material = new THREE.ShaderMaterial({
+            vertexColors: THREE.VertexColors,
+            vertexShader: document.getElementById('gouraud_Phong.vert').text,
+            fragmentShader: document.getElementById('gouraud_Phong.frag').text,
+            uniforms: {
+                m_color: { type : 'v3', value: material.Color}
+            }
+        });
+      }
+    }else if (sw_shader == 1) {       //phong shaderを選択
+      if(sw_ref == 0){                //Lambertian reflectionを選択
+        var material = new THREE.ShaderMaterial({
+            vertexColors: THREE.VertexColors,
+            vertexShader: document.getElementById('phong_Lam.vert').text,
+            fragmentShader: document.getElementById('phong_Lam.frag').text,
+            uniforms: {
+                m_color: { type : 'v3', value: material.Color}
+            }
+        });
+      }else if (sw_ref ==1) {         //Phong Reflectionを選択
+        var material = new THREE.ShaderMaterial({
+            vertexColors: THREE.VertexColors,
+            vertexShader: document.getElementById('phong_Phong.vert').text,
+            fragmentShader: document.getElementById('phong_Phong.frag').text,
+            uniforms: {
+                m_color: { type : 'v3', value: material.Color}
+            }
+        });
+      }
+    }
 
     return new THREE.Mesh( geometry, material );
 
